@@ -1,20 +1,20 @@
 {
-  "name": "claude-commit",
-  "displayName": "Claude Commit",
-  "description": "Generate smart commit messages with Claude CLI",
-  "version": "1.0.1",
-  "publisher": "juanlb",
+  "name": "phrs-smart-commit",
+  "displayName": "PHRS Smart Commit",
+  "description": "Generate smart commit messages with the AI CLI of your choice (Claude, Gemini, Codex, or a local model via Ollama)",
+  "version": "1.2.0",
+  "publisher": "PHRaulino",
   "author": {
-    "name": "JLB"
+    "name": "PHRaulino"
   },
   "license": "MIT",
-  "homepage": "https://github.com/juanlb/claude-commit#readme",
+  "homepage": "https://github.com/PHRaulino-Space/phrs-smart-commit#readme",
   "bugs": {
-    "url": "https://github.com/juanlb/claude-commit/issues"
+    "url": "https://github.com/PHRaulino-Space/phrs-smart-commit/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/juanlb/claude-commit"
+    "url": "https://github.com/PHRaulino-Space/phrs-smart-commit"
   },
   "keywords": [
     "git",
@@ -22,6 +22,11 @@
     "ai",
     "claude",
     "anthropic",
+    "gemini",
+    "codex",
+    "openai",
+    "ollama",
+    "local-llm",
     "commit-message",
     "automation"
   ],
@@ -39,10 +44,16 @@
   "icon": "icon.png",
   "activationEvents": [],
   "main": "./out/extension.js",
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "Reads the CLI path from settings and executes it. Workspace-scoped overrides of phrs-smart-commit.binaryPath could be abused to run arbitrary binaries."
+    }
+  },
   "contributes": {
     "commands": [
       {
-        "command": "claude-commit.createCommitMessage",
+        "command": "phrs-smart-commit.createCommitMessage",
         "title": "Create Commit Message",
         "icon": "$(sparkle)"
       }
@@ -50,27 +61,50 @@
     "menus": {
       "scm/title": [
         {
-          "command": "claude-commit.createCommitMessage",
+          "command": "phrs-smart-commit.createCommitMessage",
           "when": "scmProvider == git",
           "group": "navigation"
         }
       ],
       "scm/resourceGroup/inline": [
         {
-          "command": "claude-commit.createCommitMessage",
+          "command": "phrs-smart-commit.createCommitMessage",
           "group": "inline"
         }
       ]
     },
     "configuration": {
-      "title": "Claude Commit",
+      "title": "PHRS Smart Commit",
       "properties": {
-        "claude-commit.claudePath": {
+        "phrs-smart-commit.provider": {
+          "type": "string",
+          "default": "claude",
+          "enum": [
+            "claude",
+            "gemini",
+            "codex",
+            "ollama"
+          ],
+          "enumDescriptions": [
+            "Anthropic Claude Code CLI (claude)",
+            "Google Gemini CLI (gemini)",
+            "OpenAI Codex CLI (codex)",
+            "Local model via Ollama (ollama)"
+          ],
+          "description": "Which AI CLI is used to generate the commit message. The matching CLI must be installed and authenticated."
+        },
+        "phrs-smart-commit.model": {
           "type": "string",
           "default": "",
-          "description": "Custom path to Claude CLI executable (optional - auto-detects by default)"
+          "description": "Model passed to the selected CLI. Leave empty to use the provider default (claude: sonnet, gemini: gemini-2.5-flash, codex: gpt-5-codex, ollama: llama3)."
         },
-        "claude-commit.debugMode": {
+        "phrs-smart-commit.binaryPath": {
+          "type": "string",
+          "default": "",
+          "scope": "machine-overridable",
+          "description": "Custom path to the selected CLI executable (optional - auto-detects from PATH by default). Workspace overrides are ignored in untrusted workspaces."
+        },
+        "phrs-smart-commit.debugMode": {
           "type": "boolean",
           "default": false,
           "description": "Enable debug mode to show CLI commands being executed"
