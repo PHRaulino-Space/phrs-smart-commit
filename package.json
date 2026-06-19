@@ -98,6 +98,31 @@
           "default": "",
           "description": "Model passed to the selected CLI. Leave empty to use the provider default (claude: sonnet, gemini: gemini-2.5-flash, codex: gpt-5-codex, ollama: llama3)."
         },
+        "phrs-smart-commit.language": {
+          "type": "string",
+          "default": "en-us",
+          "enum": [
+            "pt-br",
+            "en-us",
+            "es",
+            "fr",
+            "de",
+            "it",
+            "ja",
+            "zh-cn"
+          ],
+          "enumDescriptions": [
+            "Brazilian Portuguese",
+            "English",
+            "Spanish",
+            "French",
+            "German",
+            "Italian",
+            "Japanese",
+            "Simplified Chinese"
+          ],
+          "description": "Language for the generated commit message. Conventional commit type keywords (feat, fix, etc.) always stay in English."
+        },
         "phrs-smart-commit.binaryPath": {
           "type": "string",
           "default": "",

@@ -61,6 +61,7 @@ The prompt (your full `git diff` plus instructions) is sent to the selected CLI 
 |---------|---------|-------------|
 | `phrs-smart-commit.provider` | `claude` | Which AI CLI generates the message: `claude`, `gemini`, `codex`, or `ollama`. |
 | `phrs-smart-commit.model` | _(empty)_ | Model passed to the CLI. Empty uses the provider default (see table above). |
+| `phrs-smart-commit.language` | `en-us` | Language for the generated message: `en-us`, `pt-br`, `es`, `fr`, `de`, `it`, `ja`, or `zh-cn`. Conventional commit keywords (`feat`, `fix`, …) always stay in English. |
 | `phrs-smart-commit.binaryPath` | _(empty)_ | Custom path to the CLI executable. Auto-detects from `PATH` by default. |
 | `phrs-smart-commit.debugMode` | `false` | Enable debug output (shows the executed command in the Output panel). |
 
@@ -79,6 +80,13 @@ The prompt (your full `git diff` plus instructions) is sent to the selected CLI 
 {
     "phrs-smart-commit.provider": "ollama",
     "phrs-smart-commit.model": "qwen2.5-coder"
+}
+```
+
+### Generate messages in Brazilian Portuguese
+```json
+{
+    "phrs-smart-commit.language": "pt-br"
 }
 ```
 
@@ -152,9 +160,11 @@ This fork addresses the following issues present in upstream `juanlb/claude-comm
 
 ### 1.2.0 (fork)
 - **Multi-provider support**: choose Claude, Gemini, Codex, or a local model via Ollama
-- New settings: `phrs-smart-commit.provider` and `phrs-smart-commit.model`
+- New settings: `phrs-smart-commit.provider`, `phrs-smart-commit.model`, and `phrs-smart-commit.language`
+- Reworked prompt aligned with the Conventional Commits spec (imperative mood, optional scope/body)
 - Renamed the extension to **PHRS Smart Commit** (`phrs-smart-commit`); command and config keys updated accordingly
 - `claudePath` setting replaced by the provider-agnostic `binaryPath`
+- Hardened CLI executor (timeout/buffer/EPIPE handling)
 
 ### 1.1.0 (fork)
 - Security hardening (see [Security hardening](#security-hardening))

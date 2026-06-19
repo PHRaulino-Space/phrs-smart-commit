@@ -2,38 +2,49 @@ import * as vscode from 'vscode';
 
 import { CLIExecutor } from './cli-executor';
 import { CONFIG_SECTION } from './config';
+import { resolveLanguage } from './languages';
 import { createLogger, Logger } from './log';
 import { runFile } from './process';
 import { resolveProvider } from './providers';
 
-const COMMIT_PROMPT_TEMPLATE = `Generate a git commit message for the following changes.
-
-IMPORTANT: Return ONLY the commit message text itself. Do not include:
-- Any explanatory text like "Based on...", "Here's...", or "Here is..."
-- Code blocks or backticks
-- Any markdown formatting
-- Any commentary before or after the message
-
-Just return the raw commit message text that will be used directly in git commit.
+const COMMIT_PROMPT_TEMPLATE = `You are a git commit message generator. Analyze the git diff below and generate a single commit message following the Conventional Commits specification.
 
 Git diff:
 {{diff}}
 
-Rules:
-- Use conventional commit format
-- Keep under 72 characters for the first line
-- Be specific and clear
-- Common types: feat, fix, docs, style, refactor, test, chore
+Rules for the commit message:
+- Format: <type>(<scope>): <description>
+  - Scope is optional — omit it if the change doesn't clearly belong to one module/area
+- Common types: feat, fix, docs, style, refactor, perf, test, chore, build, ci
+- First line must be 72 characters or fewer
+- Use imperative mood (e.g. "add", "fix", "update" — not "added", "fixes", "updating")
+- Be specific about WHAT changed and WHY when relevant, not a literal line-by-line description of the diff
+- If the diff touches multiple unrelated concerns, focus the subject line on the most significant change
+- If a body would add real value (non-trivial change, breaking change, or non-obvious reasoning), add it after a blank line, as short bullet points
+- Do not invent context that isn't in the diff — if the purpose isn't clear, describe the change factually
 
-Remember: Return ONLY the commit message text, nothing else.`;
+Output language: write the commit message in {{language}} (e.g. "Brazilian Portuguese", "English", "Spanish"). Keep conventional commit type keywords (feat, fix, docs, etc.) in English regardless of output language, since these are part of the spec and used by tooling.
 
-export function buildCommitPrompt(diff: string): string {
-    return COMMIT_PROMPT_TEMPLATE.replace('{{diff}}', diff);
+IMPORTANT — output format:
+Return ONLY the raw commit message text, nothing else. Do not include:
+- Explanatory text like "Based on...", "Here's...", "Here is..."
+- Code blocks, backticks, or markdown formatting
+- Commentary before or after the message
+- Quotes wrapping the message
+The output will be piped directly into \`git commit -m\`.`;
+
+export function buildCommitPrompt(diff: string, language: string): string {
+    // Use function replacers so `$`-sequences in the diff (e.g. `$&`, `$1`) are
+    // inserted literally instead of being treated as replacement patterns.
+    return COMMIT_PROMPT_TEMPLATE
+        .replace('{{diff}}', () => diff)
+        .replace('{{language}}', () => language);
 }
 
 export class CommitMessageGenerator {
     private readonly cliExecutor: CLIExecutor;
     private readonly binaryPath: string;
+    private readonly language: string;
     private readonly log: Logger;
 
     constructor() {
@@ -44,6 +55,7 @@ export class CommitMessageGenerator {
         const spec = resolveProvider(config.get<string>('provider'));
         const model = config.get<string>('model')?.trim() || spec.defaultModel;
         this.binaryPath = (config.get<string>('binaryPath') || '').trim();
+        this.language = resolveLanguage(config.get<string>('language'));
 
         this.cliExecutor = new CLIExecutor(spec, model, this.log);
     }
@@ -63,7 +75,7 @@ export class CommitMessageGenerator {
             }
             this.log(`[GIT] ${isStaged ? 'staged' : 'unstaged'} diff: ${diff.length} chars`);
 
-            const output = await this.cliExecutor.executeCommand(buildCommitPrompt(diff));
+            const output = await this.cliExecutor.executeCommand(buildCommitPrompt(diff, this.language));
             return this.cliExecutor.parseResponse(output);
         } catch (error: any) {
             this.log(`[ERROR] ${error.message}`);

@@ -1,6 +1,8 @@
 import * as assert from 'assert';
 
 import { CLIExecutor } from '../cli-executor';
+import { buildCommitPrompt } from '../commit-generator';
+import { DEFAULT_LANGUAGE, LANGUAGES, resolveLanguage } from '../languages';
 import { CommandError, runFile } from '../process';
 import { PROVIDERS } from '../providers';
 
@@ -104,5 +106,34 @@ suite('CLIExecutor.parseResponse', () => {
     test('claude-json: falls back to text parsing on invalid JSON', () => {
         const out = claude.parseResponse('feat: not actually json');
         assert.strictEqual(out, 'feat: not actually json');
+    });
+});
+
+suite('languages', () => {
+    test('resolves a known code to its full name', () => {
+        assert.strictEqual(resolveLanguage('pt-br'), 'Brazilian Portuguese');
+        assert.strictEqual(resolveLanguage('en-us'), 'English');
+    });
+
+    test('falls back to the default for unknown or missing codes', () => {
+        assert.strictEqual(resolveLanguage(undefined), LANGUAGES[DEFAULT_LANGUAGE]);
+        assert.strictEqual(resolveLanguage('xx-yy'), LANGUAGES[DEFAULT_LANGUAGE]);
+    });
+});
+
+suite('buildCommitPrompt', () => {
+    test('injects the diff and the language', () => {
+        const prompt = buildCommitPrompt('my diff body', 'Brazilian Portuguese');
+        assert.ok(prompt.includes('my diff body'));
+        assert.ok(prompt.includes('write the commit message in Brazilian Portuguese'));
+        assert.ok(!prompt.includes('{{diff}}'));
+        assert.ok(!prompt.includes('{{language}}'));
+    });
+
+    test('inserts $-sequences from the diff literally', () => {
+        // `$&`, `$1` etc. are special in String.replace patterns; they must survive verbatim.
+        const diff = 'const x = "$& and $1 and $$";';
+        const prompt = buildCommitPrompt(diff, 'English');
+        assert.ok(prompt.includes(diff));
     });
 });
