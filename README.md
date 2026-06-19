@@ -1,4 +1,6 @@
-# Claude Commit
+# PHRS Claude Commit
+
+> **Hardened fork** of [juanlb/claude-commit](https://github.com/juanlb/claude-commit) with the security fixes listed in [Security hardening](#security-hardening).
 
 **Already using Claude Code? Get the commit message button you deserve – at no extra cost.**
 
@@ -48,22 +50,22 @@ That's it. No configuration, no setup wizards, no complexity.
 
 This extension keeps it simple with just two optional settings:
 
-* `claude-commit.claudePath`: Custom path to Claude CLI executable (auto-detects by default)
-* `claude-commit.debugMode`: Enable debug output for troubleshooting
+* `phrs-claude-commit.claudePath`: Custom path to Claude CLI executable (auto-detects by default)
+* `phrs-claude-commit.debugMode`: Enable debug output for troubleshooting
 
 ## Configuration Examples
 
 ### Using a custom Claude path
 ```json
 {
-    "claude-commit.claudePath": "/usr/local/bin/claude"
+    "phrs-claude-commit.claudePath": "/usr/local/bin/claude"
 }
 ```
 
 ### Debug mode for troubleshooting
 ```json
 {
-    "claude-commit.debugMode": true
+    "phrs-claude-commit.debugMode": true
 }
 ```
 
@@ -81,13 +83,13 @@ If the extension can't find Claude CLI:
 
 2. **Set custom path in VS Code**:
    - Open VS Code Settings (Cmd+,)
-   - Search for "claude-commit"
+   - Search for "phrs-claude-commit"
    - In "Claude Path", enter the full path from step 1
 
 3. **Enable Debug Mode**:
    - Enable "Debug Mode" in settings
    - Open Output panel (View → Output)
-   - Select "Claude Commit" from dropdown
+   - Select "PHRS Claude Commit" from dropdown
    - Try generating a commit message and check logs
 
 4. **Common issues**:
@@ -107,7 +109,24 @@ If the extension can't find Claude CLI:
 - Authentication is handled by your existing Claude CLI setup
 - Code is only sent to Claude's servers through your authenticated CLI session
 
+> ⚠️ **Heads-up:** the **entire `git diff`** is sent to Claude as the prompt. If you accidentally staged a `.env`, key file, or secret-bearing line, it will be transmitted. Check `git diff --cached` before clicking the sparkle button.
+
+## Security hardening
+
+This fork addresses the following issues present in upstream `juanlb/claude-commit` v1.0.1:
+
+- **Shell command injection via `claudePath`** — upstream interpolated the configured Claude CLI path straight into a `bash -c` pipeline (`echo … | base64 -d | ${this.claudePath}`). A workspace-scoped `.vscode/settings.json` setting `phrs-claude-commit.claudePath` to `claude; rm -rf ~` would execute on the user's machine. This fork uses `execFile` with `shell: false`, passing the path as `argv[0]` and the prompt via `stdin`.
+- **Untrusted-workspace exposure** — upstream did not declare `capabilities.untrustedWorkspaces`. This fork sets `supported: false`, so the extension is disabled in untrusted workspaces. The `claudePath` setting is also marked `machine-overridable`, blocking workspace-level override.
+- **Removed `--dangerously-skip-permissions`** — upstream passed this flag on every Claude invocation. It is unnecessary for generating a commit message and bypasses Claude Code's permission prompts.
+- **Removed unsafe shell helpers** — `find ${home}/.nvm …` and other interpolated commands have been replaced with `fs.readdir` scans. The broken `${process.env.HOME}/.nvm/.../bin` glob in `PATH` (which never expanded) was removed.
+- **Removed fragile internal API access** — the upstream `(uri as any).E?.fsPath` referenced an obfuscated VS Code internal that would break on minor updates; replaced with the documented `uri.fsPath`.
+
 ## Release Notes
+
+### 1.1.0 (fork)
+- Security hardening (see [Security hardening](#security-hardening))
+- Renamed package to `phrs-claude-commit` and command/config keys accordingly
+- Declared `capabilities.untrustedWorkspaces.supported = false`
 
 ### 1.0.1
 - Streamlined configuration – removed unnecessary options for dead-simple operation
@@ -122,7 +141,7 @@ If the extension can't find Claude CLI:
 
 ## Contributing
 
-Found a bug or have a feature request? Please open an issue on our [GitHub repository](https://github.com/juanlb/claude-commit).
+Found a bug or have a feature request? Please open an issue on the [fork's repository](https://github.com/PHRaulino-Space/phrs-claude-commit).
 
 ## License
 

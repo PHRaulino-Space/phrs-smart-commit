@@ -1,20 +1,20 @@
 {
-  "name": "claude-commit",
-  "displayName": "Claude Commit",
-  "description": "Generate smart commit messages with Claude CLI",
-  "version": "1.0.1",
-  "publisher": "juanlb",
+  "name": "phrs-claude-commit",
+  "displayName": "PHRS Claude Commit",
+  "description": "Generate smart commit messages with Claude CLI (hardened fork)",
+  "version": "1.1.0",
+  "publisher": "PHRaulino",
   "author": {
-    "name": "JLB"
+    "name": "PHRaulino"
   },
   "license": "MIT",
-  "homepage": "https://github.com/juanlb/claude-commit#readme",
+  "homepage": "https://github.com/PHRaulino-Space/phrs-claude-commit#readme",
   "bugs": {
-    "url": "https://github.com/juanlb/claude-commit/issues"
+    "url": "https://github.com/PHRaulino-Space/phrs-claude-commit/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/juanlb/claude-commit"
+    "url": "https://github.com/PHRaulino-Space/phrs-claude-commit"
   },
   "keywords": [
     "git",
@@ -39,10 +39,16 @@
   "icon": "icon.png",
   "activationEvents": [],
   "main": "./out/extension.js",
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "Reads the Claude CLI path from settings and executes it. Workspace-scoped overrides of phrs-claude-commit.claudePath could be abused to run arbitrary binaries."
+    }
+  },
   "contributes": {
     "commands": [
       {
-        "command": "claude-commit.createCommitMessage",
+        "command": "phrs-claude-commit.createCommitMessage",
         "title": "Create Commit Message",
         "icon": "$(sparkle)"
       }
@@ -50,27 +56,28 @@
     "menus": {
       "scm/title": [
         {
-          "command": "claude-commit.createCommitMessage",
+          "command": "phrs-claude-commit.createCommitMessage",
           "when": "scmProvider == git",
           "group": "navigation"
         }
       ],
       "scm/resourceGroup/inline": [
         {
-          "command": "claude-commit.createCommitMessage",
+          "command": "phrs-claude-commit.createCommitMessage",
           "group": "inline"
         }
       ]
     },
     "configuration": {
-      "title": "Claude Commit",
+      "title": "PHRS Claude Commit",
       "properties": {
-        "claude-commit.claudePath": {
+        "phrs-claude-commit.claudePath": {
           "type": "string",
           "default": "",
-          "description": "Custom path to Claude CLI executable (optional - auto-detects by default)"
+          "scope": "machine-overridable",
+          "description": "Custom path to Claude CLI executable (optional - auto-detects by default). Workspace overrides are ignored in untrusted workspaces."
         },
-        "claude-commit.debugMode": {
+        "phrs-claude-commit.debugMode": {
           "type": "boolean",
           "default": false,
           "description": "Enable debug mode to show CLI commands being executed"
