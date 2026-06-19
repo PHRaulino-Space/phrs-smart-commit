@@ -62,6 +62,7 @@ The prompt (your full `git diff` plus instructions) is sent to the selected CLI 
 | `phrs-smart-commit.provider` | `claude` | Which AI CLI generates the message: `claude`, `gemini`, `codex`, or `ollama`. |
 | `phrs-smart-commit.model` | _(empty)_ | Model passed to the CLI. Empty uses the provider default (see table above). |
 | `phrs-smart-commit.language` | `en-us` | Language for the generated message: `en-us`, `pt-br`, `es`, `fr`, `de`, `it`, `ja`, or `zh-cn`. Conventional commit keywords (`feat`, `fix`, …) always stay in English. |
+| `phrs-smart-commit.maxDiffBytes` | `102400` (100 KB) | Max diff size sent to the CLI. Above it you're asked to use a summary or cancel (see [Large diffs](#large-diffs)). |
 | `phrs-smart-commit.binaryPath` | _(empty)_ | Custom path to the CLI executable. Auto-detects from `PATH` by default. |
 | `phrs-smart-commit.debugMode` | `false` | Enable debug output (shows the executed command in the Output panel). |
 
@@ -105,6 +106,15 @@ The prompt (your full `git diff` plus instructions) is sent to the selected CLI 
 }
 ```
 
+## Large diffs
+
+The whole diff is sent to the CLI as the prompt, so two safeguards keep huge diffs from blowing the model's context or producing a poor message:
+
+- **Noise is filtered out automatically.** Lockfiles and generated artifacts (`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `*.lock`, `*.min.js`, `*.min.css`, `*.map`) are excluded from the diff. If a commit touches *only* those files, the full diff is used instead, so the feature still works.
+- **You decide what to do when it's still too big.** If the diff exceeds `phrs-smart-commit.maxDiffBytes` (default 100 KB), a dialog asks whether to:
+  - **Generate from summary** — uses `git diff --stat` (file/line counts) instead of the full content, or
+  - **Cancel** — so you can split the work into smaller, focused commits.
+
 ## Troubleshooting
 
 ### CLI not found
@@ -144,7 +154,7 @@ The provider invocations are best-effort defaults (`claude --print --model … -
 - Authentication is handled by your existing CLI setup
 - Code is only sent to a provider's servers through your own authenticated CLI session (local providers like Ollama send nothing off-machine)
 
-> ⚠️ **Heads-up:** the **entire `git diff`** is sent to the CLI as the prompt. If you accidentally staged a `.env`, key file, or secret-bearing line, it will be included. Check `git diff --cached` before clicking the sparkle button.
+> ⚠️ **Heads-up:** your `git diff` is sent to the CLI as the prompt (minus the auto-excluded noise paths — see [Large diffs](#large-diffs)). If you accidentally staged a `.env`, key file, or secret-bearing line, it will be included. Check `git diff --cached` before clicking the sparkle button.
 
 ## Security hardening
 
@@ -165,6 +175,7 @@ This fork addresses the following issues present in upstream `juanlb/claude-comm
 - Renamed the extension to **PHRS Smart Commit** (`phrs-smart-commit`); command and config keys updated accordingly
 - `claudePath` setting replaced by the provider-agnostic `binaryPath`
 - Hardened CLI executor (timeout/buffer/EPIPE handling)
+- Large-diff handling: auto-excludes noise (lockfiles, minified, maps); prompts for summary-or-cancel above `maxDiffBytes`
 
 ### 1.1.0 (fork)
 - Security hardening (see [Security hardening](#security-hardening))

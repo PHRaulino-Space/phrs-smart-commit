@@ -8,6 +8,7 @@
 - Renamed the extension to **PHRS Smart Commit** (`phrs-smart-commit`); command and configuration keys updated accordingly.
 - Replaced `claudePath` with the provider-agnostic `binaryPath` setting.
 - Hardened the CLI executor: proper timeout/buffer-overflow detection and EPIPE handling on stdin, so a hung or early-exiting CLI no longer crashes the extension or returns truncated output.
+- **Large-diff handling**: noise paths (lockfiles, `*.min.js`, `*.map`, etc.) are excluded from the diff automatically, and diffs over `phrs-smart-commit.maxDiffBytes` (default 100 KB) prompt you to generate from a `git diff --stat` summary or cancel and split into smaller commits.
 
 ## [1.1.0]
 - Security hardening of the upstream `juanlb/claude-commit`: removed shell command injection via the CLI path, declared `capabilities.untrustedWorkspaces.supported = false`, removed `--dangerously-skip-permissions` and unsafe shell helpers.

@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 
 import { CLIExecutor } from '../cli-executor';
-import { buildCommitPrompt } from '../commit-generator';
+import { buildCommitPrompt, buildDiffArgs, EXCLUDED_PATHSPECS } from '../commit-generator';
 import { DEFAULT_LANGUAGE, LANGUAGES, resolveLanguage } from '../languages';
 import { CommandError, runFile } from '../process';
 import { PROVIDERS } from '../providers';
@@ -130,10 +130,37 @@ suite('buildCommitPrompt', () => {
         assert.ok(!prompt.includes('{{language}}'));
     });
 
+    test('wraps the diff in untrusted-data delimiters with an injection guard', () => {
+        const prompt = buildCommitPrompt('feat: x', 'English');
+        assert.ok(prompt.includes('<git-diff>') && prompt.includes('</git-diff>'));
+        assert.ok(prompt.includes('UNTRUSTED DATA'));
+    });
+
     test('inserts $-sequences from the diff literally', () => {
         // `$&`, `$1` etc. are special in String.replace patterns; they must survive verbatim.
         const diff = 'const x = "$& and $1 and $$";';
         const prompt = buildCommitPrompt(diff, 'English');
         assert.ok(prompt.includes(diff));
+    });
+});
+
+suite('buildDiffArgs', () => {
+    test('plain unstaged diff has no --cached/--stat and no excludes', () => {
+        assert.deepStrictEqual(buildDiffArgs(false, false, false), ['diff']);
+    });
+
+    test('staged toggles --cached, stat toggles --stat', () => {
+        assert.deepStrictEqual(buildDiffArgs(true, false, false), ['diff', '--cached']);
+        assert.deepStrictEqual(buildDiffArgs(true, true, false), ['diff', '--cached', '--stat']);
+    });
+
+    test('exclude appends the noise-filtering pathspecs after a "--" separator', () => {
+        const args = buildDiffArgs(true, false, true);
+        const sep = args.indexOf('--');
+        assert.ok(sep >= 0, 'should contain a -- separator');
+        assert.strictEqual(args[sep + 1], '.');
+        for (const spec of EXCLUDED_PATHSPECS) {
+            assert.ok(args.includes(spec), `missing exclude pathspec: ${spec}`);
+        }
     });
 });

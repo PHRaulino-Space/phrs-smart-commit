@@ -1,9 +1,25 @@
 import * as vscode from 'vscode';
 
-import { CommitMessageGenerator } from './commit-generator';
+import { CommitMessageGenerator, LargeDiffChoice, LargeDiffInfo } from './commit-generator';
 import { COMMAND_ID, CONFIG_SECTION } from './config';
 import { outputChannel } from './log';
 import { resolveProvider } from './providers';
+
+/** Ask the user how to handle an oversized diff: summarise via `--stat`, or cancel. */
+async function promptLargeDiff({ bytes, limitBytes }: LargeDiffInfo): Promise<LargeDiffChoice> {
+    const kb = Math.round(bytes / 1024);
+    const limitKb = Math.round(limitBytes / 1024);
+    const useSummary = 'Generate from summary';
+    const choice = await vscode.window.showWarningMessage(
+        `The diff is too large (${kb} KB > ${limitKb} KB) to produce a good commit message.`,
+        {
+            modal: true,
+            detail: 'Generate the message from a summary (git diff --stat), or cancel and split your changes into smaller commits.',
+        },
+        useSummary,
+    );
+    return choice === useSummary ? 'summary' : 'abort';
+}
 
 /** Resolve the repository the command should act on, prompting the user if ambiguous. */
 async function resolveTargetRepo(uri: vscode.Uri | undefined): Promise<any | undefined> {
@@ -69,7 +85,7 @@ export function activate(context: vscode.ExtensionContext) {
                             outputChannel.appendLine('[GENERATE] Cancelled by user');
                         }
                     });
-                    return generator.generateCommitMessage(targetRepo.rootUri.fsPath);
+                    return generator.generateCommitMessage(targetRepo.rootUri.fsPath, promptLargeDiff);
                 },
             );
 

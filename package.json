@@ -129,6 +129,12 @@
           "scope": "machine-overridable",
           "description": "Custom path to the selected CLI executable (optional - auto-detects from PATH by default). Workspace overrides are ignored in untrusted workspaces."
         },
+        "phrs-smart-commit.maxDiffBytes": {
+          "type": "number",
+          "default": 102400,
+          "minimum": 1024,
+          "description": "Maximum diff size (in bytes) sent to the CLI. Above this you are asked to generate from a summary (git diff --stat) or cancel and split into smaller commits. Lockfiles and generated artifacts (*.lock, *.min.js, *.map, etc.) are excluded from the diff automatically."
+        },
         "phrs-smart-commit.debugMode": {
           "type": "boolean",
           "default": false,
