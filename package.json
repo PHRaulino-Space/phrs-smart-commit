@@ -2,7 +2,7 @@
   "name": "phrs-smart-commit-ext",
   "displayName": "PHRS AI Smart Commit",
   "description": "Generate smart commit messages with the AI CLI of your choice (Claude, Gemini, Codex, or a local model via Ollama)",
-  "version": "1.2.0",
+  "version": "1.4.0",
   "publisher": "phraulino",
   "author": {
     "name": "phraulino"

@@ -31,7 +31,7 @@ async function resolveTargetRepo(uri: vscode.Uri | undefined): Promise<any | und
     const git = gitExtension.getAPI(1);
     const repos: any[] = git.repositories;
 
-    if (uri) {
+    if (uri && uri.fsPath) {
         const uriPath = uri.fsPath;
         const match = repos.find((repo) => uriPath.startsWith(repo.rootUri.fsPath));
         if (match) {

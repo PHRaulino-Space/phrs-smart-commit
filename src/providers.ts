@@ -33,10 +33,10 @@ export const PROVIDERS: Record<string, ProviderSpec> = {
         id: 'gemini',
         label: 'Gemini CLI',
         defaultBinary: 'gemini',
-        defaultModel: 'gemini-2.5-flash',
+        defaultModel: 'gemini-3.1-flash-lite',
         promptVia: 'stdin',
         outputFormat: 'text',
-        buildArgs: (model) => ['-m', model],
+        buildArgs: (model) => ['-m', model, '--skip-trust'],
     },
     codex: {
         id: 'codex',
