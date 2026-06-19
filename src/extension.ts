@@ -22,7 +22,7 @@ async function promptLargeDiff({ bytes, limitBytes }: LargeDiffInfo): Promise<La
 }
 
 /** Resolve the repository the command should act on, prompting the user if ambiguous. */
-async function resolveTargetRepo(uri: vscode.Uri | undefined): Promise<any | undefined> {
+async function resolveTargetRepo(arg: vscode.Uri | any | undefined): Promise<any | undefined> {
     const gitExtension = vscode.extensions.getExtension('vscode.git')?.exports;
     if (!gitExtension) {
         vscode.window.showErrorMessage('Git extension not available');
@@ -31,8 +31,17 @@ async function resolveTargetRepo(uri: vscode.Uri | undefined): Promise<any | und
     const git = gitExtension.getAPI(1);
     const repos: any[] = git.repositories;
 
-    if (uri && uri.fsPath) {
-        const uriPath = uri.fsPath;
+    // scm/title passes a SourceControl object with rootUri (not a plain Uri)
+    if (arg?.rootUri?.fsPath) {
+        const match = repos.find((repo) => repo.rootUri.fsPath === arg.rootUri.fsPath);
+        if (match) {
+            return match;
+        }
+    }
+
+    // scm/resourceGroup/inline passes a Uri directly
+    if (arg?.fsPath) {
+        const uriPath = arg.fsPath;
         const match = repos.find((repo) => uriPath.startsWith(repo.rootUri.fsPath));
         if (match) {
             return match;
@@ -61,7 +70,7 @@ export function activate(context: vscode.ExtensionContext) {
         outputChannel.show();
     }
 
-    const disposable = vscode.commands.registerCommand(COMMAND_ID, async (uri?: vscode.Uri) => {
+    const disposable = vscode.commands.registerCommand(COMMAND_ID, async (uri?: vscode.Uri | any) => {
         const cfg = vscode.workspace.getConfiguration(CONFIG_SECTION);
         const debug = cfg.get<boolean>('debugMode') || false;
         const provider = resolveProvider(cfg.get<string>('provider'));
