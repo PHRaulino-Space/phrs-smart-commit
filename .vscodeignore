@@ -1,6 +1,8 @@
 .vscode/**
 .vscode-test/**
+.claude/**
 src/**
+out/test/**
 .gitignore
 .yarnrc
 vsc-extension-quickstart.md
@@ -11,3 +13,4 @@ vsc-extension-quickstart.md
 **/.vscode-test.*
 test-functionality.js
 .env
+*.vsix

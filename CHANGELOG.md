@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.4.2]
+- Fixed Codex CLI execution from the extension by passing `--skip-git-repo-check` to `codex exec`.
+
 ## [1.2.0]
 - **Multi-provider support**: choose Claude, Gemini, Codex, or a local model via Ollama with the `phrs-smart-commit.provider` setting.
 - New `phrs-smart-commit.model` setting to pick the model per provider (empty = provider default).

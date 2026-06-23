@@ -121,6 +121,17 @@ suite('languages', () => {
     });
 });
 
+suite('providers', () => {
+    test('codex skips the git repository trust check for extension-driven execution', () => {
+        assert.deepStrictEqual(PROVIDERS.codex.buildArgs('gpt-5-codex'), [
+            'exec',
+            '--model',
+            'gpt-5-codex',
+            '--skip-git-repo-check',
+        ]);
+    });
+});
+
 suite('buildCommitPrompt', () => {
     test('injects the diff and the language', () => {
         const prompt = buildCommitPrompt('my diff body', 'Brazilian Portuguese');

@@ -42,10 +42,10 @@ export const PROVIDERS: Record<string, ProviderSpec> = {
         id: 'codex',
         label: 'OpenAI Codex CLI',
         defaultBinary: 'codex',
-        defaultModel: 'gpt-5-codex',
+        defaultModel: 'gpt-5.4-mini',
         promptVia: 'stdin',
         outputFormat: 'text',
-        buildArgs: (model) => ['exec', '--model', model],
+        buildArgs: (model) => ['exec', '--model', model, '--skip-git-repo-check'],
     },
     ollama: {
         id: 'ollama',
